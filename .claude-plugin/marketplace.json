@@ -1,11 +1,14 @@
 {
   "name": "cuco-studio",
   "description": "Video creation with cuco CLI",
+  "owner": {
+    "name": "CucoStudio"
+  },
   "plugins": [
     {
       "name": "cuco-studio",
       "version": "0.1.0",
-      "path": "."
+      "source": "."
     }
   ]
 }

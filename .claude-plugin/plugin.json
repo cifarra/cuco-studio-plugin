@@ -1,0 +1,9 @@
+{
+  "name": "cuco-studio",
+  "description": "Skills for creating videos with the cuco CLI - storyboards, arrangements, and rendering",
+  "version": "0.1.0",
+  "author": {
+    "name": "CucoStudio"
+  },
+  "license": "MIT"
+}

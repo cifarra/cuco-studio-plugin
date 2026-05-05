@@ -7,8 +7,9 @@
   "plugins": [
     {
       "name": "cuco-studio",
+      "description": "Build storyboards, create arrangements, render videos",
       "version": "0.1.0",
-      "source": "."
+      "source": "./"
     }
   ]
 }

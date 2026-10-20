@@ -1,0 +1,75 @@
+{
+  "fontFaces": [
+    {
+      "family": "monoFont",
+      "src": "url(\"../media/CourierPrime_Regular-s.p.0357340c9cxif.woff2?dpl=dpl_6ahLb3A5ptPvpaC3TMs9muNztBZY\") format(\"woff2\")",
+      "weight": "400",
+      "style": "normal"
+    },
+    {
+      "family": "\"monoFont Fallback\"",
+      "src": "local(\"Arial\")",
+      "weight": "",
+      "style": ""
+    },
+    {
+      "family": "displayFont",
+      "src": "url(\"../media/Sigurd_Variable-s.p.092~ec~icx8ri.woff2?dpl=dpl_6ahLb3A5ptPvpaC3TMs9muNztBZY\") format(\"woff2\")",
+      "weight": "300 800",
+      "style": ""
+    },
+    {
+      "family": "\"displayFont Fallback\"",
+      "src": "local(\"Times New Roman\")",
+      "weight": "",
+      "style": ""
+    }
+  ],
+  "roles": {
+    "display": {
+      "text": "The AgentThat GrowsWith You",
+      "fontFamily": "displayFont, \"displayFont Fallback\", \"Times New Roman\", serif, \"Times New Roman\", serif",
+      "fontSize": "80.5424px",
+      "fontWeight": "300",
+      "letterSpacing": "2.41627px",
+      "lineHeight": "70.8773px",
+      "textTransform": "uppercase",
+      "color": "rgb(245, 245, 245)"
+    },
+    "body": {
+      "text": "Open Source \u2022 MIT License",
+      "fontFamily": "monoFont, \"monoFont Fallback\", \"Courier New\", monospace",
+      "fontSize": "10.9831px",
+      "fontWeight": "400",
+      "letterSpacing": "1.09831px",
+      "lineHeight": "16.4746px",
+      "textTransform": "uppercase",
+      "color": "rgb(245, 245, 245)"
+    },
+    "nav": {
+      "text": "Nous",
+      "fontFamily": "displayFont, \"displayFont Fallback\", \"Times New Roman\", serif, \"Times New Roman\", serif",
+      "fontSize": "13.4237px",
+      "fontWeight": "800",
+      "letterSpacing": "0.402712px",
+      "lineHeight": "20.1356px",
+      "textTransform": "uppercase",
+      "color": "rgb(245, 245, 245)"
+    },
+    "label": {
+      "text": "NousDocsHermesAgentPortalInstallOpen Source \u2022 MIT LicenseThe",
+      "fontFamily": "displayFont, \"displayFont Fallback\", \"Times New Roman\", serif, \"Times New Roman\", serif",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "letterSpacing": "normal",
+      "lineHeight": "21px",
+      "textTransform": "uppercase",
+      "color": "rgb(245, 245, 245)"
+    }
+  },
+  "areaColors": {
+    "rgb(0, 0, 242)": 29533193.64819336,
+    "rgb(255, 255, 255)": 2470674.7739257812,
+    "rgb(245, 245, 245)": 29600.15625
+  }
+}

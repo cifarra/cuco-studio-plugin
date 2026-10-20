@@ -1,0 +1,24 @@
+{
+  "source_dir": "/Volumes/mi discon/JAMEL/Edits/SHOTS",
+  "style": "Pk-clean",
+  "trim": true,
+  "open": true,
+  "edits": [
+    {
+      "name": "PK — The Shot",
+      "shots": [
+        { "file": "A012_04020035_C078", "in": 0.0, "dur": 3.5 },
+        { "file": "A012_04020058_C100", "in": 0.0, "dur": 4.0 }
+      ]
+    },
+    {
+      "name": "PK — Through the Lens",
+      "shots": [
+        { "file": "A012_04020346_C246", "in": 1.3, "dur": 2.0 },
+        { "file": "A012_04020155_C166", "in": 0.0, "dur": 2.2 },
+        { "file": "A012_04020425_C290", "in": 0.0, "dur": 2.5 },
+        { "file": "A012_04020143_C145", "in": 1.2, "dur": 1.8 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+ "_doc": "Design roles derived from the CucoStudio style. scripts/style_brief.py --apply fills style_id/name/size/palette/fonts; YOU assign roles (bg, paper, ink, muted, accent, accent2, wood, kinds, lights, chapter_tag) after LOOKING at the style's poster sheet and probe frame. Defaults = style 65 'Cuco'.",
+ "style_id": 65,
+ "style_name": "Cuco",
+ "width": 1620,
+ "height": 1080,
+ "palette": [
+  "#e0bf6e",
+  "#ff594e",
+  "#446130"
+ ],
+ "fonts": [],
+ "display_font": "Red Hat Display",
+ "mono_font": "JetBrains Mono",
+ "bg": "#efe7d6",
+ "paper": "#fbf6ea",
+ "ink": "#29251e",
+ "muted": "#6d6252",
+ "accent": "#ff594e",
+ "accent2": "#446130",
+ "gold": "#e0bf6e",
+ "water": "#3f7fd0",
+ "wood": "#e6c893",
+ "label_weight": 700,
+ "title_weight": 800,
+ "outline": 0.42,
+ "chapter_tag": true,
+ "kinds": {},
+ "sky_light": "#fff7ea",
+ "ground_light": "#b9a486",
+ "ambient": 1.35
+}

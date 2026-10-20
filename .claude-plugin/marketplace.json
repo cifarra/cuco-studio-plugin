@@ -1,14 +1,14 @@
 {
   "name": "cuco-studio",
-  "description": "Video creation with cuco CLI",
+  "description": "CucoStudio agent skills for Claude Code",
   "owner": {
     "name": "CucoStudio"
   },
   "plugins": [
     {
       "name": "cuco-studio",
-      "description": "Build storyboards, create arrangements, render videos",
-      "version": "0.1.0",
+      "description": "Videos with the cuco CLI, style creation, After Effects craft and inspection, shot edits, visual sourcing, music beds",
+      "version": "0.2.0",
       "source": "./"
     }
   ]

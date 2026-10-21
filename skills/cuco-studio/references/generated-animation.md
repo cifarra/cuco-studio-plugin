@@ -1,4 +1,4 @@
-# Generated animation media (three.js explainers → CucoStudio)
+# Generated animation media (code-drawn explainers → CucoStudio)
 
 > `$CUCO_SKILL` below = the cuco-studio skill directory (the folder holding `SKILL.md`, one level above this file).
 
@@ -7,8 +7,18 @@ bridge carries load — build the visuals in code. A procedural 3D model, animat
 narration and annotated like a textbook plate, then assembled and voiced in CucoStudio.
 First production: "How a House Is Framed" (37 beats, 6:40, `~/edits/framing-a-house`).
 
-The template at `templates/threejs-explainer/` is the working engine from that build,
-generalized (example scene: a workbench). Copy it, replace `scene.js` + `beats.js`.
+Two engines, same pipeline (style → voice → beats → review → render → attach). Pick per video:
+
+| template | draws | pick it for | you write |
+|---|---|---|---|
+| `templates/threejs-explainer/` | a procedural 3D model, camera moves, labels | physical things: how something is built, assembled, moves | `scene.js` + `beats.js` |
+| `templates/plates-2d/` | flat 2D "plates": multiply inks, line pass, type, diagrams | concepts, systems, data, processes, anything abstract | `beats.js` only |
+
+The three.js template is the house-framing engine, generalized (example scene: a workbench).
+The plates template is the EmbeddingGemma 2 engine (32 beats, 6:02, `~/edits/ml/embeddings-gemma-2`),
+generalized (example: 3 beats on how a section works). Both read their colors, typefaces and canvas
+size from `web/theme.json`, so **the same beats re-skin to whichever style you apply.**
+Sections 3–4 below are three.js-specific; the plates engine is covered in 4b.
 
 ## The pipeline
 
@@ -32,7 +42,7 @@ so animations stretch to the new duration automatically).
 ## Setup
 
 ```bash
-cp -R $CUCO_SKILL/templates/threejs-explainer ~/edits/<project>
+cp -R $CUCO_SKILL/templates/threejs-explainer ~/edits/<project>    # or templates/plates-2d
 cd ~/edits/<project> && npm i && npx playwright install chromium   # once per machine for chromium
 ```
 
@@ -214,6 +224,43 @@ See the header of the template's `beats.js` for the full schema. Patterns that w
 - `draw(g, ctx)` for arrows (load flow, heave, thrust), dashed lines (frost line, rough
   opening), little 2D insets (racking diagram). Project 3D points with `ctx.project(V(...))`.
 - One chapter tag top-left (`chapter: ['05', 'FLOOR']`) keeps a long lesson navigable.
+
+## 4b. 2D plates (templates/plates-2d)
+
+Flat print plates, frame-deterministic on canvas. Each frame composites: paper → **color pass**
+(fills multiply over each other like overprinted inks; edges wobbled, specks punched) → **line pass**
+(crisp ink strokes + type, slightly misregistered against the fills) → paper grain. The look is the
+`cuco-brand-design` overprint language; `theme.json` dials it from rough print to clean vector.
+
+**Theme roles** (`web/theme.json`; `style_brief.py --apply` fills size, palette, fonts, then you
+assign roles after looking at the poster sheet): `paper` (stock / background), `ink` (lines + type),
+`gold` (highlight blocks under key words), `accent`, `tint` (light fill), `accent2` (deep fill),
+`muted`; `kinds` = per-modality inks; `print` = `{wobble, grain, speck, mis}`: wobble 9 / grain 0.16 /
+speck 0.9 / mis 1 is the Cuco print; 0 / 0.04 / 0 / 0.5 reads as a clean Swiss style (Neoblue).
+Multiply inks need **light paper**: on a dark style they vanish. Use the three.js engine there.
+
+**A beat** is `{scene, chapter?, draw(K, c)}` in `web/js/beats.js` (split into `beats1.js`… for long
+videos). `draw` runs every frame; derive everything from `c.T` (seconds since this beat's narration
+starts; negative during the section's intro hold, where entrances can already play):
+- `K` = the print kit (`print.js`): color pass `rect / disc / poly / band / union`; line pass
+  `box / ring / path / line / arrow(pts, f) / dashed / dots / dim(a, b, '4.2 s') / text / type`;
+  `focal`, `cross`, modality glyphs `glyph('image', x, y, s)`, chapter `tag`. `fx.js` adds envelopes
+  `A(T, t0)` / `F(T, t0, t1)` / `pop`, waveforms, film strips, braces, vector cells, a 3D point
+  space (`proj3`, `cube`, `axes3`, `cloud`), line icons, chips. Add per-video helpers there.
+- **Key every entrance to its word:** `c.at('rafters')` = when that word is spoken (`c.at(w, n)` for
+  the nth occurrence, `c.at(w, 0, true)` for its end). Times come from `script/words.json`
+  (`python3 script/align.py` after narrating; forced alignment per beat wav). Before narration
+  exists, `c.at` spreads the beat's text evenly over its duration, so drafts work.
+- **Lay out against `c.W` / `c.H`**, never fixed x positions: the canvas takes the style's media-slot
+  aspect (1620×1080 for Cuco, 1440×1080 for Neoblue…), and a hardcoded right edge gets clipped.
+- Keep the composition still between entrances; one idea per plate; `hl` a short phrase, not a line.
+- `scene: 'name'` tells the seam checker which plates share a subject (2D plates have no camera).
+
+**Section timing.** After a first `cuco arrangement process <PID> <AID> --no-render`,
+`python3 script/timing.py <PID> <AID>` writes `script/timing.json` (each section's intro hold `off`
+and real length `len` from `screenplay.json`). `render.mjs` then holds frame 0 for `off` and
+renders `len + 0.9 s`, so every entrance lands on its word in the final video. Render to a new
+folder (`--out=clips_v2`) and re-attach.
 
 ## 5. Review loop — the step that makes it good
 

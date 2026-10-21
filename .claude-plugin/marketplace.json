@@ -8,7 +8,7 @@
     {
       "name": "cuco-studio",
       "description": "Videos with the cuco CLI, style creation, After Effects craft and inspection, shot edits, visual sourcing, music beds",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "source": "./"
     }
   ]

@@ -1,6 +1,6 @@
 ---
 name: cuco-studio
-description: Render videos with the cuco CLI / CucoStudio. Use ANY time you turn content into a video here: building a storyboard (sections of text + media), creating an arrangement, applying a style, and rendering an mp4 — or driving projects, styles, transcription, story clips. ALSO use whenever the user refers to an existing video/story/script of theirs ("my new cucostudio video", "my video called X", "the latest cuco project") and wants it read, reviewed, proofread, summarized or edited: those live in the app, not on disk — fetch them with the cuco CLI, never search the filesystem. Triggers — "cuco", "CucoStudio", "my video", "review/proofread the script", "check the grammar of my video", "make/render a video", "build a storyboard", "render this arrangement", "turn these images/clips into a video", "explainer / educational video", "animate how X works/is built", "3D animation for a video", "use three.js/p5 for the visuals". Read BEFORE driving the cuco CLI by hand. cuco does one thing: it turns a storyboard (text + media paths) into a rendered video. It does not source media — hand it paths you already have, or generate them (see "Generated animation media": a three.js engine template renders narrated, annotated 3D explainer clips).
+description: Render videos with the cuco CLI / CucoStudio. Use ANY time you turn content into a video here: building a storyboard (sections of text + media), creating an arrangement, applying a style, and rendering an mp4 — or driving projects, styles, transcription, story clips. ALSO use whenever the user refers to an existing video/story/script of theirs ("my new cucostudio video", "my video called X", "the latest cuco project") and wants it read, reviewed, proofread, summarized or edited: those live in the app, not on disk — fetch them with the cuco CLI, never search the filesystem. Triggers — "cuco", "CucoStudio", "my video", "review/proofread the script", "check the grammar of my video", "make/render a video", "build a storyboard", "render this arrangement", "turn these images/clips into a video", "explainer / educational video", "animate how X works/is built", "3D animation for a video", "animated diagrams / plates for a concept", "generate the media in the style", "use three.js/p5/canvas for the visuals". Read BEFORE driving the cuco CLI by hand. cuco does one thing: it turns a storyboard (text + media paths) into a rendered video. It does not source media — hand it paths you already have, or generate them (see "Generated animation media": two engine templates, three.js for 3D models and 2D print plates for concepts and diagrams, render narrated clips themed from the selected style).
 ---
 
 # Cuco Video Engine
@@ -100,8 +100,10 @@ section. **Every section boundary is a cut**: design each clip's opening shot to
 from the previous clip's closing shot (shot size ≥ 2 steps, angle ≥ 30°, or a different subject),
 otherwise the near-identical frames read as a jarring jump cut. Check with
 `node render.mjs --seams` before rendering. **Read `${CLAUDE_SKILL_DIR}/references/generated-animation.md` first** (`$CUCO_SKILL` there = `${CLAUDE_SKILL_DIR}`); it has the full pipeline, the
-review loop, and what went wrong the first time. A working engine lives in
-`templates/threejs-explainer/` (copy it, replace `scene.js` + `beats.js`). Helper scripts:
+review loop, and what went wrong the first time. Two working engines, both
+themed from the style: `templates/threejs-explainer/` (3D models; copy it, replace `scene.js` +
+`beats.js`) and `templates/plates-2d/` (flat overprint-print plates for concepts, diagrams and data;
+replace `beats.js`). Helper scripts:
 
 | script | does |
 |---|---|

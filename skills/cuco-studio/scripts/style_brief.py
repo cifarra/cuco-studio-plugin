@@ -11,8 +11,8 @@ Writes to DIR (default ./style_brief):
   brief.json         everything below, machine-readable
   poster_sheet.jpg   frames sampled across the style's poster — LOOK at it (Read the image)
 Prints a summary. With --apply, writes TEMPLATE_DIR/web/theme.json (colors, fonts, clip size) and
-copies the brand font files into TEMPLATE_DIR/web/fonts/, so the three.js explainer engine renders
-in the brand's palette and exact typefaces at the media slot's aspect ratio.
+copies the brand font files into TEMPLATE_DIR/web/fonts/, so the explainer engines (templates/threejs-explainer,
+templates/plates-2d) render in the brand's palette and exact typefaces at the media slot's aspect ratio.
 """
 import argparse, glob, json, os, re, shutil, subprocess
 
@@ -125,5 +125,6 @@ if a.apply:
                   'display_font': faces[0]['family'] if faces else theme.get('display_font')})
     json.dump(theme, open(theme_path, 'w'), indent=1)
     print(f"\napplied -> {theme_path}: canvas {W}x{H}, fonts {[x['family'] for x in faces]}")
-    print('NOW set theme roles by hand (bg / ink / accent / accent2 / wood...) after looking at the poster sheet:')
+    print('NOW set theme roles by hand after looking at the poster sheet (see the _doc in theme.json):')
+    print('  three.js: bg / paper / ink / accent / accent2 / wood...   plates-2d: paper / ink / gold / accent / tint / accent2 / print')
     print('which palette color is the background, which is the accent, what the style already draws (frame, captions).')

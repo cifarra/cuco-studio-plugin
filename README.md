@@ -16,7 +16,7 @@ Skills are namespaced, e.g. `/cuco-studio:create-style`, `/cuco-studio:ae-contex
 
 | Skill | What it does |
 |---|---|
-| `cuco-studio` | Storyboard → project → arrangement → render; three.js explainer template |
+| `cuco-studio` | Storyboard → project → arrangement → render; style-themed explainer templates (three.js 3D, 2D print plates) |
 | `create-style` | Turn a URL / images / aesthetic into a CucoStudio style (AE / WebGFX / Blender) |
 | `ae-context` | `aectx` CLI: inspect layers, expressions, values at time, validate style contracts, render frames |
 | `ae-shape-animation` | Shape-layer animation in a running After Effects via ExtendScript |

@@ -1,7 +1,7 @@
 {
   "name": "cuco-studio",
   "description": "CucoStudio agent skills: render videos with the cuco CLI, create styles, After Effects craft and inspection, shot edits, visual sourcing, and music beds",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "CucoStudio"
   },

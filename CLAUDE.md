@@ -7,7 +7,7 @@ for them (it replaced `~/gits/cucostudio/skills`).
 
 | Skill | What it does |
 |---|---|
-| `cuco-studio` | Make videos with the cuco CLI: storyboard → project → arrangement → render; three.js explainer template |
+| `cuco-studio` | Make videos with the cuco CLI: storyboard → project → arrangement → render; style-themed explainer templates (three.js 3D, 2D print plates) |
 | `create-style` | Create a style (video design system) from a URL / images / described aesthetic; routes to AE / WebGFX / Blender |
 | `ae-context` | Inspect and verify the running After Effects project with the `aectx` CLI |
 | `ae-shape-animation` | After Effects shape-layer animation craft via ExtendScript |

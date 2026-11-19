@@ -209,7 +209,8 @@ def _png_complete(p):
 def cmd_frames(a):
     times = _times(a.t)
     if a.out:
-        out = Path(a.out).expanduser()
+        # absolute: AE resolves a relative path against its own cwd, and the wait never sees the PNGs
+        out = Path(a.out).expanduser().resolve()
         out.mkdir(parents=True, exist_ok=True)
     else:
         core.OUTS.mkdir(parents=True, exist_ok=True)

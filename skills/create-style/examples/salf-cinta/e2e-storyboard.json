@@ -1,0 +1,85 @@
+{
+ "sections": [
+  {
+   "text": "Nadie regala nada y lo vamos a cambiar.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  },
+  {
+   "text": "¡Basta ya!",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  },
+  {
+   "text": "Lo que se decide en los despachos también se puede contar en la calle. Con nombres, con pruebas y sin pedir permiso a nadie.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  },
+  {
+   "text": "Así se vive la calle.",
+   "media": [
+    {
+     "filePath": "projects/186/attached_media/grupo.jpg",
+     "fileHash": "207d591d8fd2a2da553974d8596beb51f5104d88155f0265552605ec08e9ef1e",
+     "originalName": "grupo.jpg",
+     "fileSize": 417552,
+     "mimeType": "image/jpeg"
+    }
+   ],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  },
+  {
+   "text": "Esto se cuenta.",
+   "media": [
+    {
+     "filePath": "projects/186/attached_media/grupo-v.jpg",
+     "fileHash": "951267ac8f3d51a60f6a4660d5dd506ddb2865ee2bbe424fe621673382e7df1f",
+     "originalName": "grupo-v.jpg",
+     "fileSize": 253403,
+     "mimeType": "image/jpeg"
+    }
+   ],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  },
+  {
+   "text": "",
+   "media": [
+    {
+     "filePath": "projects/186/attached_media/grupo-45.jpg",
+     "fileHash": "b3b8a61b7a67e6ae466e6f4a7273efdc4ad61f476785bee7f74043e9d807a69f",
+     "originalName": "grupo-45.jpg",
+     "fileSize": 342197,
+     "mimeType": "image/jpeg"
+    }
+   ],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  },
+  {
+   "text": "Nadie nos va a callar. Lo vamos a decir en voz alta.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "es",
+   "mute": true
+  }
+ ],
+ "soundtrack_duration": 0
+}

@@ -17,6 +17,12 @@ Outputs into <out_dir>:
                                    area-weighted element background colors
     palette.json                 — area-weighted pixel palette of the
                                    rendered page (median-cut quantization)
+    imagery/ + imagery.json      — the brand's IMAGE LANGUAGE: the largest
+                                   rendered images, CSS background images,
+                                   video posters, og:image, and inline SVG
+                                   marks, ranked by on-page area. LOOK at them:
+                                   medium, light, texture, process. This is
+                                   context for the world, not layout to copy.
 
 Requires: playwright (chromium installed) + pillow.
 """
@@ -29,6 +35,51 @@ from pathlib import Path
 
 URL = sys.argv[1]
 OUT = Path(sys.argv[2])
+MAX_IMAGES = 16          # downloaded raster/vector images, by rendered area
+MAX_SVGS = 6             # inline <svg> marks saved as files
+MAX_BYTES = 15_000_000   # skip anything bigger (hero videos etc.)
+
+IMAGERY_PROBE = """() => {
+  const items = [];
+  const abs = u => { try { return new URL(u, location.href).href; } catch (e) { return null; } };
+  const area = el => { const r = el.getBoundingClientRect(); return Math.round(Math.max(0, r.width) * Math.max(0, r.height)); };
+  for (const img of document.querySelectorAll('img')) {
+    const src = img.currentSrc || img.src;
+    if (!src || src.startsWith('data:')) continue;
+    items.push({kind: 'img', url: abs(src), area: area(img), natural: [img.naturalWidth, img.naturalHeight], alt: (img.alt || '').slice(0, 80)});
+  }
+  for (const el of document.querySelectorAll('*')) {
+    const bg = getComputedStyle(el).backgroundImage;
+    if (!bg || bg === 'none') continue;
+    for (const m of bg.matchAll(/url\\(["']?([^"')]+)["']?\\)/g)) {
+      if (m[1].startsWith('data:')) continue;
+      items.push({kind: 'background', url: abs(m[1]), area: area(el), natural: null, alt: ''});
+    }
+  }
+  for (const v of document.querySelectorAll('video')) {
+    if (v.poster) items.push({kind: 'video-poster', url: abs(v.poster), area: area(v), natural: null, alt: ''});
+    const src = v.currentSrc || v.src || (v.querySelector('source') || {}).src;
+    if (src && !src.startsWith('blob:')) items.push({kind: 'video', url: abs(src), area: area(v), natural: [v.videoWidth, v.videoHeight], alt: ''});
+  }
+  const og = document.querySelector('meta[property="og:image"], meta[name="og:image"]');
+  if (og && og.content) items.push({kind: 'og-image', url: abs(og.content), area: 0, natural: null, alt: ''});
+  const svgs = [...document.querySelectorAll('svg')]
+    .map(s => ({svg: s, a: area(s), inHeader: !!s.closest('header, nav')}))
+    .filter(o => o.a >= 400 && o.svg.outerHTML.length < 200000)
+    .sort((x, y) => (y.inHeader - x.inHeader) || (y.a - x.a))
+    .slice(0, %d)
+    .map(o => ({area: o.a, inHeader: o.inHeader, markup: o.svg.outerHTML}));
+  return {items, svgs};
+}""" % MAX_SVGS
+
+SCROLL_ALL = """async () => {
+  // walk the page once so lazy-loaded imagery actually loads
+  const step = Math.max(400, window.innerHeight * 0.8);
+  for (let y = 0; y < document.body.scrollHeight; y += step) {
+    window.scrollTo(0, y); await new Promise(r => setTimeout(r, 250));
+  }
+  window.scrollTo(0, 0); await new Promise(r => setTimeout(r, 600));
+}"""
 
 PAGE_PROBE = """() => {
   const out = {fontFaces: [], roles: {}, areaColors: {}};
@@ -110,6 +161,60 @@ PAGE_PROBE = """() => {
 }"""
 
 
+EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/avif": ".avif",
+       "image/gif": ".gif", "image/svg+xml": ".svg", "video/mp4": ".mp4", "video/webm": ".webm"}
+
+
+async def collect_imagery(page):
+    """Rank the page's imagery by rendered area, download the top of it."""
+    import re
+
+    probe = await page.evaluate(IMAGERY_PROBE)
+    best = {}
+    for it in probe["items"]:
+        if not it["url"]:
+            continue
+        prev = best.get(it["url"])
+        if prev is None or it["area"] > prev["area"]:
+            best[it["url"]] = it
+    ranked = sorted(best.values(), key=lambda it: (it["kind"] != "og-image", -it["area"]))
+    d = OUT / "imagery"
+    d.mkdir(parents=True, exist_ok=True)
+    saved = []
+    for it in ranked:
+        if len([s for s in saved if s.get("file")]) >= MAX_IMAGES:
+            break
+        rec = dict(it)
+        try:
+            resp = await page.request.get(it["url"], timeout=20000)
+            body = await resp.body() if resp.ok else b""
+            ctype = (resp.headers.get("content-type") or "").split(";")[0].strip()
+            if not body or len(body) > MAX_BYTES or not (ctype.startswith("image/") or ctype.startswith("video/")):
+                rec["skipped"] = f"status={resp.status} type={ctype or '?'} bytes={len(body)}"
+            else:
+                src = it["url"]
+                inner = re.search(r"[?&]url=([^&]+)", src)          # Next/Vercel image optimizer URLs
+                if inner:
+                    from urllib.parse import unquote
+                    src = unquote(inner.group(1))
+                stem = re.sub(r"[^A-Za-z0-9._-]+", "-", Path(src.split("?")[0]).stem)[:40] or "image"
+                name = f"{len(saved) + 1:02d}-{it['kind']}-{stem}{EXT.get(ctype, '')}"
+                (d / name).write_bytes(body)
+                rec["file"] = f"imagery/{name}"
+        except Exception as e:
+            rec["skipped"] = str(e)[:120]
+        saved.append(rec)
+    for i, s in enumerate(probe["svgs"], 1):
+        name = f"svg-{i:02d}{'-header' if s['inHeader'] else ''}.svg"
+        markup = s["markup"]
+        if "xmlns=" not in markup[:200]:
+            markup = markup.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"', 1)
+        (d / name).write_text(markup)
+        saved.append({"kind": "inline-svg", "area": s["area"], "file": f"imagery/{name}"})
+    (OUT / "imagery.json").write_text(json.dumps(saved, indent=2))
+    return saved
+
+
 async def main():
     from playwright.async_api import async_playwright
 
@@ -117,14 +222,30 @@ async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page(viewport={"width": 1440, "height": 900})
-        await page.goto(URL, wait_until="networkidle")
+        # Sites with live connections (chat widgets, analytics beacons) never
+        # reach networkidle: settle for "load" instead of failing.
+        try:
+            await page.goto(URL, wait_until="networkidle", timeout=25000)
+        except Exception as e:
+            print(f"networkidle not reached ({type(e).__name__}); using load", file=sys.stderr)
+            await page.goto(URL, wait_until="load", timeout=45000)
         await page.wait_for_timeout(2500)
+        title = await page.title()
+        if any(k in title for k in ("Attention Required", "Just a moment", "Access denied")):
+            print(f"BOT WALL: page title is {title!r}. Use a real browser "
+                  "(Claude in Chrome) for screenshots and imagery.", file=sys.stderr)
 
         await page.screenshot(path=str(OUT / "viewport.png"))
+        try:
+            await page.evaluate(SCROLL_ALL)
+        except Exception as e:  # a hostile page shouldn't kill the extraction
+            print(f"scroll pass failed: {e}", file=sys.stderr)
         await page.screenshot(path=str(OUT / "fullpage.png"), full_page=True)
 
         data = await page.evaluate(PAGE_PROBE)
         (OUT / "computed.json").write_text(json.dumps(data, indent=2))
+
+        imagery = await collect_imagery(page)
         await browser.close()
 
     # ---- pixel palette: area-weighted quantization of the rendered page,
@@ -165,7 +286,9 @@ async def main():
     (OUT / "palette.json").write_text(json.dumps(palette, indent=2))
     print(json.dumps({"palette": palette, "ctaColors": data["ctaColors"],
                       "roles": data["roles"],
-                      "fontFaces": data["fontFaces"][:8]}, indent=2))
+                      "fontFaces": data["fontFaces"][:8],
+                      "imagery": [f"{i.get('kind')}: {i.get('file') or i.get('skipped')}"
+                                  for i in imagery]}, indent=2))
 
 
 asyncio.run(main())

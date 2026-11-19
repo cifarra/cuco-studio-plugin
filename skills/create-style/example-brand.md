@@ -1,52 +1,93 @@
-# Doyouplay Brand Reference
+# BRAND.md: the expected shape
 
-## About
-Tennis matchmaking app — find tennis partners and open courts in your city.
+One file in your working folder (`~/styles/{brand}/BRAND.md`), in two parts. The
+**brief** records what you learned (Step 1: context). The **world** records what you
+invented (Step 2: design). Keep them separate: the brief is evidence, the world is a
+decision. A brief can come from a URL, from a handful of images, or from a sentence of
+prompt. Fill what the input gives you and write the rest yourself.
 
-## Color Palette (60/30/10)
-- **Dominant**: `#F5F0E2` — Warm beige/cream (backgrounds)
-- **Secondary**: `#3B82F6` — Vibrant blue (highlights, CTAs)
-- **Accent**: `#4ADE80` — Tennis green (ball, accents)
+Worked example: Doyouplay, from its website.
 
-### Extended Palette
-- Dark text: `#0F172A` (slate-900)
-- Mid text: `#475569` (slate-600)
-- Light bg: `#F1F5F9` (slate-50)
-- Orange warmth: `#F97316` (from illustrations)
-- Court green: `#22C55E`
+---
 
-## Typography
-- **Display/Headlines**: Bungee (bold, blocky, playful)
-- **Secondary Headlines**: Bungee Hairline
-- **Body/Primary**: Onest (400–900)
-- **Secondary Body**: Space Grotesk (300–700)
-- **UI/Mono**: Kode Mono (400–700)
-- **Italic/Quotes**: Instrument Sans (400–700, italic)
+# Doyouplay
 
-## Visual Identity
-- Hand-drawn/illustrated aesthetic with painterly brush strokes
-- Sketchy, organic line quality (not photorealistic)
-- Tennis motifs: courts, balls, rackets, nets
-- City landmarks (SF bridge, NYC skyline) in same illustrated style
-- Rounded corners, playful tilts (rotate-1 to rotate-3deg)
-- Colorful, energetic, community-driven feel
+## Brief (context)
 
-## Logo
-- Wordmark "Doyouplay" in Bungee font
-- Tennis ball mascot: stylized green ball with black stroke lines
+**What it is.** A tennis matchmaking app: find partners and open courts in your city.
 
-## Assets Downloaded
-- `assets/images/opengraph-image.jpg` — OG card (brand overview)
-- `assets/images/hero-courts.png` — Illustrated tennis court + ball
-- `assets/images/hero-ball-man.png` — Tennis ball mascot/logo
-- `assets/images/court.png` — Orange/green court illustration
-- `assets/images/rackets.png` — Two rackets illustration
-- `assets/images/sf-city.png` — SF bridge illustration
-- `assets/images/nyc-skyline.png` — NYC skyline illustration
-- `assets/images/landing-heart.svg` — Heart icon
-- `assets/images/app-store.svg` — App Store badge
+**Audience & voice.** Urban amateur players, 25–40. Friendly, energetic, a bit
+cheeky ("Do you play?"); community over competition.
 
-## Google Fonts URL
-```
-https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Hairline&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Kode+Mono:wght@400..700&family=Onest:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap
-```
+**Palette (60/30/10)**, from rendered pixels:
+
+| Role | Hex | Evidence |
+|---|---|---|
+| Dominant | `#F5F0E2` warm cream | page field, ~60% of pixels |
+| Secondary | `#3B82F6` vivid blue | headings, CTAs |
+| Accent | `#4ADE80` tennis-ball green | the ball, one highlight per section |
+
+**Type character.**
+- Display: Bungee (blocky, signage-like, all caps)
+- Body: Onest (friendly grotesque)
+- Mono: Kode Mono, used for court numbers and times
+
+**Image language.** This is the part that matters for video.
+- Painterly gouache illustrations: flat opaque colour, visible dry-brush edges,
+  sketchy black contour lines that don't quite close.
+- Subjects: courts seen from above, balls, rackets, city landmarks (Golden Gate, NYC
+  skyline) in the same hand.
+- Warm, slightly overexposed light. Off-white paper shows through thin paint.
+
+**Owned visuals.** The green ball mascot with black seam strokes, and the Bungee
+wordmark.
+
+**Left on the site.** These are interface, not identity:
+- rounded cards, `rotate-1..3deg` tilts on cards
+- pill buttons, app-store badges
+- the scroll fade-ins
+
+**Assets** (`assets/images/`): `opengraph-image.jpg`, `hero-courts.png`,
+`hero-ball-man.png`, `court.png`, `rackets.png`, `sf-city.png`, `nyc-skyline.png`.
+
+## World (design)
+
+**Material + process.** Gouache on cold-press paper, painted while you watch. Every
+frame is a painting in progress: court lines laid down with a dry brush, colour
+fields blocked in, the black contour drawn last.
+
+**Empty frame.** Cream paper with fibre, last section's paint drying at the edges,
+and a court line half-painted across the frame.
+
+**Signature verb: PAINT.**
+- Shapes and type are painted in: Scribble/Write-on strokes inside masks, with Brush
+  Strokes texture on the fills.
+- The whole world boils at 12 fps.
+- The ball is the one thing that moves physically: it bounces once per section,
+  leaves a scuff on the paper, and the scuff stays.
+
+**Type in the world.** Bungee painted as court-line paint: white or blue dry-brush
+caps, painted stroke by stroke, with Roughen Edges and a slight boil. Onest for
+supporting lines, painted flat.
+
+**Palette use.**
+- Cream is the paper and blue is the paint.
+- Green is spent only on the ball and its scuff marks.
+- Darker blue and paper shadow come from blue × cream in expressions.
+
+**Media becomes material.** Photos get posterized toward a few flat tones (Cartoon +
+Levels), get Brush Strokes, and are multiplied onto the paper. A black contour pass
+(Find Edges → Levels → boil) draws over them.
+
+**Trinity.**
+- FORM: from loose sketch (contours only) to finished painting (all fields blocked
+  in).
+- FLOW: boil rate, 6 → 12 fps, plus how far the painting hand travels.
+- PRESSURE: how messy the brush is: stroke spill past the lines, paint spatter,
+  misaligned contours.
+
+**Canvas.** 1080×1920 at 30 fps.
+
+**Material plates.** A Comfy/Krea2 cold-press paper texture (neutral, tileable),
+three LTX loops of gouache brush strokes on white (MULTIPLY maps for the paint-in),
+and one paint-spatter still.

@@ -4,6 +4,15 @@ Build the style by driving a RUNNING After Effects via ExtendScript. You
 generate a `.jsx` that constructs the whole project, execute it, inspect the
 result structurally, then verify it VISUALLY with rendered frames.
 
+**AE is a compositor, not a layout engine.** It has light and shadow in 3D space,
+time effects, procedural matter (fractal noise, displacement, caustics), mattes, and
+footage plates you generate or source. Build the world you invented in SKILL.md
+Step 2 with those tools. The tested recipes and their runnable lab are in
+[ae-techniques.md](./ae-techniques.md). A style made only of solids, text, Gradient
+Ramp and masks would render the same in CSS; that's the failure this playbook exists
+to avoid. Most of this file is the contract and the hard-won ExtendScript gotchas. They
+keep the build working; they are not the design.
+
 **Inspect and verify with the `ae-context` skill (`aectx`)** — not with
 hand-written probes. `aectx status` tells you which AE is RUNNING (several
 versions may be installed; `ls /Applications` picks the wrong one), what's open
@@ -168,7 +177,8 @@ osascript -e 'tell application "Adobe After Effects 2025" to DoScript "$.evalFil
   `add()/sub()/mul()` — `[a,b] + [c,d]` silently string-concatenates.
 - Parenting a child to a layer whose keyframes put it off-screen at t=0 bakes
   that offset into the child. Parent first, THEN set the child's local
-  position (e.g. `[srcW/2, srcH/2]` to overlay a same-size precomp).
+  position (e.g. `[srcW/2, srcH/2]` to overlay a same-size precomp), or use
+  `child.setParentWithJump(parent)`, which skips the compensation.
 - `saveFrameToPng` returns before the PNG is fully written — wait/poll for
   stable file sizes before building contact sheets.
 - The invisible CucoStudio CEP worker only connects if the backend was
@@ -235,6 +245,17 @@ osascript -e 'tell application "Adobe After Effects 2025" to DoScript "$.evalFil
   explicitly.
 - Heavier expression rigs make `saveFrameToPng` take minutes, not seconds.
   Poll for the expected file count before building sheets.
+- **Never sequence the shot comps into `mainComp`** (keep only `mainControl`
+  there). The director extends EVERY mainComp layer to the video's full
+  length, so each frame of the final render also renders 3–4 hidden shot
+  comps underneath the visible section. SidecarSUN: 1.5–2.4 s/frame → 0.04–0.28
+  s/frame after removing them. At the slow rate a 31 s video hit CucoStudio's
+  ~21 min `CREATE_AEP` timeout ("AE extension disconnected"). Benchmark with
+  the render queue (`rq.render()` + `$.hiresTimer`), not `saveFrameToPng`,
+  which costs ~2 s/frame even on a solid.
+- Phrase engines: before the first phrase (`IDX < 1`) don't let the "next
+  phrase start" act as `t1`. The out-animation fires early and parks the
+  line fully visible before the section's first word.
 - Reading effect/property values from ExtendScript and concatenating them into
   strings can throw "invalid numeric result" — format elements with a helper
   (`Math.round(v*100)/100`) instead of stringifying arrays directly.
@@ -245,14 +266,144 @@ osascript -e 'tell application "Adobe After Effects 2025" to DoScript "$.evalFil
 - Colors are NOT set directly on text — `ADBE Fill` on the precomp LAYER in
   the shot comp, color expression →
   `comp("mainComp").layer("mainControl").effect("1")("Color")`.
+  Exception — **two-colour / two-font text**: AE 25.x Source Text expressions
+  style character ranges (`style.setText(s).setFont("X-Regular")
+  .setFillColor(c).setFont("X-Italic", i, n).setFillColor(c2, i, n)`), read the
+  palette from mainControl, and survive the director's font fitting. Used for
+  an italic accent landing line and word-by-word subtitle inking from the
+  "0".."100" markers (word k of n has marker `round(k/n*100)`). Set ALL ranges
+  explicitly (base font too) and add no Fill effect on the precomp layer, which
+  would flatten them. Set leading in the same chain (`setAutoLeading(false)
+  .setLeading(fs*k)`): the director only shrinks `fontSize`, so a fixed
+  leading goes loose.
+- **Masked line-by-line rise** (each line rises out of its own baseline) with N
+  copies of `{shot}-text`: each copy needs TWO masks. Mask 1 isolates line i
+  in text-comp space. Mask 2 (Intersect) is the window, fixed in shot space,
+  so it is offset by `-dy`. With mask 2 alone, the neighbouring line slides
+  into the band as a ghost. Take band cuts from the baseline
+  (`textBlock.toComp([0,0])`, step = leading) at the font's real
+  descender/ascender gap, and measure that gap with fontTools. Newsreader at
+  leading 1.04 has descenders at 0.239 em and the next ascender at 0.305 em,
+  so cut at 0.27 em. Add a drift to Position only, never to the window offset,
+  and the window moves with the line.
+- `transform.anchorPoint.value` read in a Position expression on a
+  collapsed precomp layer threw a time-dependent "Internal error" (on 1 of 3
+  identical copies). Use `[thisLayer.source.width/2, thisLayer.source.height/2]`.
+- Shape groups: `addProperty` on a group's contents invalidates earlier refs to
+  siblings (`Object is invalid`). Re-fetch with `contents.property(k)` after
+  adding the Fill/Stroke. MatchNames that are easy to guess wrong: Mask
+  Expansion = `ADBE Mask Offset`, 2D Rotation = `ADBE Rotate Z`.
+- Furniture text in a vertical style: ≥ 24 px (20 px tracked caps reads as
+  ~7 pt on a phone). Keep captions and subtitles above the bottom ~400 px. On
+  Reels/TikTok, the platform UI covers that area.
+- **How the director fits text** (`typeSetSection` in utils.jsx):
+  - It measures on a duplicate of textBlock named `__cuco_fit_scratch`, at the
+    FIRST "100" marker. For a one-word phrase that is the phrase's first frame.
+  - It applies the section's MINIMUM fitted size to every phrase.
+  - It centres each phrase with HOLD anchor + position keys.
+  - For point text it checks WIDTH only (`rect.width <= comp.width`). Height is
+    never checked, so a reflow expression must keep the stack inside the comp's
+    height itself (score each line count by `zh/(nl*lead)` too).
+  - Scoring line counts by size alone gives ragged stacks such as
+    "impressions, / and / an in-house / lab,". Multiply the score by
+    `(shortest/longest line)^0.5`. For long copy, wrap by minimum raggedness:
+    a DP over break points costing squared slack, plus a penalty per line.
+    Both are in [examples/hcd-smile/](./examples/hcd-smile/).
+  - A reflow that estimates character width must err WIDE. HCD Smile's 06 used
+    0.405·size, real lines came out wider, and the width-only fit shrank the
+    whole section to 35 px. 0.44 held.
+  - Line breaks must not depend on the CURRENT font size. A reflow that caps its
+    score at `style.fontSize` picks one long line at small sizes, so width stops
+    growing with size and the director's binary search collapses (SALF 03 fell to
+    72 px). Score line counts by the comp's capacity only.
+
+  Per-letter animators (Expression Selectors) must therefore return the rest state
+  on the scratch layer: `if (thisLayer.name == "__cuco_fit_scratch") { 0; } else
+  { … }`. Previews made without the director should emulate the same fit; see
+  `simTexts()` in [examples/letterpile/](./examples/letterpile/).
+- AE 25.6 Source Text expressions style per character range: `setApplyStroke`,
+  `setStrokeColor`, `setStrokeWidth`, `setTracking`, `setFontSize`,
+  `setBaselineShift`, `setFillColor` (value, index, count). With the document's
+  `strokeOverFill = true` and the default "Per Character Palette" fill & stroke
+  order, later characters cover earlier ones, fill AND outline: real stacking
+  with no extra layers. Negative tracking eats word spaces, so give the space
+  characters their own positive tracking.
+- Text font size caps at 1296 px. Make giant letters at 1000 px and scale the
+  layer. Keep a uniform line weight with `strokeWidth = SW/(scale/100)`.
+- Shot-comp expressions can read the section's own words through the slot,
+  because layer names survive `replaceSource`:
+  `thisComp.layer("01-text").source.layer("textBlock").text.sourceText.valueAtTime(firstMarker + 0.2)`.
+  A text comp can read its shot's controller with
+  `comp(thisComp.name.replace(/-text$/, "")).layer("controller")`.
+- Extra copies of `{shot}-text` with `ADBE Minimax` (Operation 2, Channel 2 =
+  alpha, Radius r) + Fill make a die-cut backing that follows every per-letter
+  animation, because the copies run the same animators. A copy dilated by
+  r + line weight and filled with the ink gives the backing its own outline.
+- **Measure the text ONCE per frame: the typeset layer.** HCD Smile's first engine
+  rendered at 4.8 s/frame with 4 line copies. Every copy ran 5 expressions, and
+  each called `sourceRectAtTime`, read Source Text and walked the markers, all
+  multiplied by motion-blur sub-frames. The fix:
+  - Add one guide text layer per shot (`guideLayer = true`, opacity 0), named
+    `typeset {shot}-text`. Its Source Text expression measures the block and
+    returns JSON: rect, font size, baseline, line lengths, phrase t0/t1/index,
+    spoken fraction.
+  - Every copy, mask, stroke and rig reads it with
+    `JSON.parse(String(thisComp.layer("typeset 01-text").text.sourceText.valueAtTime(Math.round(time*30)/30)))`.
+    Reading at the FRAME time keeps motion-blur sub-frames from re-measuring.
+
+  Result: 0.06–0.14 s/frame. Benchmark the render queue
+  ([examples/sidecarsun-rise/bench.jsx](./examples/sidecarsun-rise/bench.jsx))
+  after the first build, not after the last.
+- **Read the reflowed block once, too.** SALF Cinta's line layers each copied the
+  block with `getStyleAt(0, t)`, and so did matching measure layers, so the reflow
+  expression ran 18 times a frame (1.7 s/frame). Fix: one guide layer reads the
+  block once and returns `{fs, lines}`. Each line layer styles itself from that
+  (`style.setText(…).setFontSize(fs)…`) and is measured by the typeset directly:
+  0.24 s/frame.
+- **What's left is each expression's header**: cross-comp control reads and
+  controller keys. Give frame-level properties (anchor, path, fill, opacity) only
+  what they need. Don't funnel every transform through one JSON "drive" layer:
+  its sub-frame readers re-run it (0.76 vs 0.28 s/frame).
+- **Media arrive "fit", not "cover".** The director's `frameClip` scales media
+  with `"fit"`, so other aspect ratios letterbox inside `{shot}-frame`. The frame
+  comp's own layers survive `frameComp.duplicate()`, so make the placeholder a
+  guide layer, or it shows in the letterbox bars. To fill a window, cover-scale
+  the frame LAYER in the shot from the media layer inside it:
+  `var Lm = thisLayer.source.layer(1), sc = Lm.transform.scale.value; k = Math.max(S.width/(Lm.source.width*sc[0]/100), S.height/(Lm.source.height*sc[1]/100))`.
+  To move the media inside a shaped window, give it a separate shape-layer
+  track matte; the media layer's own transform is then free.
+- Shot comps are renamed `{shot}-{sectionIndex}` with a 0-based index:
+  `thisComp.name.match(/-(\d+)$/)`. Use it to vary the DESIGN per section (a
+  crop, a composition, a texture frame), never to show it as content: a visible
+  section counter reads as information. A time-remapped precomp of evergreen
+  plates at one frame each: `(SEC % N)/fps`. Time remapping also lets `fillComp` extend the layer past the
+  precomp's duration.
+- **Time from the controller's keys, in seconds.** The director keys enter from
+  `inPoint − 0.01` to `tail_a` and exit from `tail_b` to `outPoint + 0.01`.
+  Reading those key times and running motion in seconds gives the same pace in
+  every section length. Compress only when a tail is shorter than the motion:
+  `KE = min(1, (e1 − e0)/1.3)`. Driving everything from the slider stretches a
+  2.5 s enter to 2.5 s of motion.
+- **Write in step with the voice.** In the typeset JSON, compute the spoken
+  fraction of the current phrase from the word markers: the last marker ≤ time,
+  eased from the previous value over 0.25 s. Also record when the phrase reached
+  "100". A written line `i` reveals while that fraction crosses its share of the
+  phrase's characters. Anything that follows the last word (an underline, a
+  flourish) starts from the "100" time. A fixed-duration write ran past short
+  phrases and never reached its flourish.
 
 ## Motion (this is where styles live or die)
 
-Author motion as **keyframes retimed through the controller** plus
-**expressions that consume the trinity**. Reference:
-[animation-reference.md](./animation-reference.md) — professional easing
-(70–85% influence, never default 33%), timing tables, overshoot/bounce/
-wiggle expressions, text animators via matchNames, shape layers, staggering.
+**The world's process IS the motion.** Ink soaks and type appears where it soaks;
+plates land off register and settle; light rakes across a paper stage; a line system
+grows. Rigid moves (slide, scale, fade) place things between those events and are
+never the style. Build the process with [ae-techniques.md](./ae-techniques.md).
+
+Author it as **keyframes retimed through the controller** plus **expressions that
+consume the trinity**. Mechanics reference:
+[animation-reference.md](./animation-reference.md) covers easing (70–85% influence,
+never the default 33%), overshoot/bounce expressions, text animator and shape
+match names, and timing at video scale.
 
 **Illustrated / vector shape work** (mascots, animated ornaments, logo
 marks, characters built from paths + ellipses + repeaters): use the sibling
@@ -271,6 +422,14 @@ then blends back to key(1)'s value as the exit slider rises — every element
 leaves by undoing its own native entrance (mask-rises sink back, stamps
 un-stamp, bursts shrink, smears re-blur). Only override when the template has
 an explicit different outro (e.g. Liquid Glass defocus, typewriter delete).
+
+**Shot furniture must not re-animate on every cut.** The caster runs the same
+framed shot back to back: a promo reel can have 6–9 framed sections in a row.
+A logo draw-on or header fade inside that shot replays at every cut, and the
+header blinks. Hialeah City Dental did exactly this. In repeatable shots, make
+headers, logos and phone lines static from frame 1, gated only by FORM; save
+draw-ons for the title shot that opens a video. The fix there was a `still` flag
+in `makeMark()` (see [examples/hialeah-dental/](./examples/hialeah-dental/)).
 ```javascript
 var en = 0, ex = 0;
 try { en = thisComp.layer("controller").effect("enter")("Slider").value / 100; } catch (err) {}
@@ -299,16 +458,22 @@ valueAtTime(newTime);
 ```
 
 **The trinity MUST do visible work** — a style that ignores it renders every
-arrangement identically. Read the sliders from shot-comp expressions:
+arrangement identically. Wire each axis into the world's PROCESS, not only into
+positions and opacity. Read the sliders from shot-comp expressions:
 ```javascript
-var flow = comp("mainComp").layer("mainControl").effect("FLOW")("Slider") / 100;
-// flow (static↔kinetic):   wiggle/drift amplitude, idle motion amount
-//   e.g. Position: value + [0, Math.sin(time*2)*20*flow]
-// form (structural↔abstract): opacity-gate decorative layers, deepen grades
-//   e.g. Opacity on an ornament layer: form > 0.5 ? 100 : 0  (or linear ramp)
-// pressure (low↔high entropy): scatter offsets, tracking, density
+var MC = comp("mainComp").layer("mainControl");
+var FORM = MC.effect("FORM")("Slider").value/100, FLOW = MC.effect("FLOW")("Slider").value/100,
+    PRES = MC.effect("PRESSURE")("Slider").value/100;
+// FORM (structural↔abstract): how far the process transforms the image —
+//   refraction strength, noise share of a soak map, halftone cell size, layer depth
+// FLOW (static↔kinetic): how alive the material is at rest —
+//   fractal evolution speed, boil frame rate (posterizeTime), camera/light drift, rib drift
+// PRESSURE (low↔high entropy): how much the process disorders —
+//   misregistration, raggedness/edge hardness, shadow hardness, copy density, cut-angle variance
 ```
-Wire at least one visible consequence per axis, per shot.
+Wire at least one visible consequence per axis, per shot. At least one of them
+must change the image-making process itself. Every recipe in
+[ae-techniques.md](./ae-techniques.md) lists its trinity hooks.
 
 ## Visual verification (MANDATORY — the inspector can't see beauty)
 
@@ -320,10 +485,19 @@ Wire at least one visible consequence per axis, per shot.
    shot actually USE FORM/FLOW/PRESSURE and the palette?). Value questions
    ("do these bands share edges at t=2?") → `aectx eval`.
 2. **Visual pass**: `aectx frames --comp 01 --t 0.3,0.5,2.0,9.6 --sheet` and
-   READ the sheet (it waits until every PNG is fully written). View the PNGs. Judge: enter frames must show motion mid-flight (two
-   nearby times must DIFFER), settled must be composed and confidently
-   typed, palette disciplined. Iterate script → re-run → re-inspect →
-   re-look, at least twice.
+   READ the sheet (it waits until every PNG is fully written). View the PNGs.
+   Judge the craft:
+   - enter frames must show motion mid-flight (two nearby times must DIFFER)
+   - settled frames must be composed and confidently typed
+   - the palette must be disciplined
+
+   Then judge the world (SKILL.md Step 2):
+   - the text-only shot passes the empty-frame test
+   - no slop signature is present
+   - no frame could be rebuilt in CSS
+   - the media is visibly transformed by the world's process
+
+   Iterate script → re-run → re-inspect → re-look, at least twice.
 3. Save the project: `app.project.save(new File(".../{Name}.aep"))` into a
    dedicated style folder (exactly ONE .aep at its root).
 
@@ -336,6 +510,10 @@ Wire at least one visible consequence per axis, per shot.
 - Then the shared finish line from SKILL.md: smoke render (the AE path also
   requires the extension for rendering), poster.gif from the render,
   `voice_sample.wav` convention for narration.
+- Material plates (generated, sourced or baked) live in `{style}/footage/` and are
+  imported from there. `aectx validate` and `GET_STYLE_DATA` flag missing footage.
+  Benchmark the finished shot comps with the render queue (`examples/sidecarsun-rise/bench.jsx`)
+  against the budget in [ae-techniques.md](./ae-techniques.md) "Render cost".
 - To learn from an existing style: open it, `aectx extract`, then
   `aectx overview`, `aectx tree`, `aectx exprs` (expression families with
   locations; `--show ID` for one in full). analyze-template.jsx is the older

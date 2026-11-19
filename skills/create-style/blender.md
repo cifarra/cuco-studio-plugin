@@ -13,8 +13,8 @@ To build a Blender style today:
 2. Read its designers-docs section and implementation record in `docs/specs/`
    — those are authoritative for the .blend template conventions, the
    control-property (trinity) wiring, and the render/verification loop.
-3. Apply the shared design doctrine from SKILL.md (design commitments,
-   motion verb, visual verification, finish line).
+3. Apply the shared design doctrine from SKILL.md (the world from Step 2:
+   material, process verb, type in the world; visual verification; finish line).
 
 When the branch merges to main, distill its docs into a full playbook here
 (mirror the structure of ae.md / webgfx.md).

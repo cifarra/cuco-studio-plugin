@@ -61,6 +61,18 @@ or debugging a wrong palette/font.
   match anatomy class (Didone / transitional / grotesque / geometric /
   humanist / slab / mono) AND weight AND casing/tracking usage.
 
+## Imagery pass (added 2026-11)
+
+Palette and type say little about how a brand's pictures are MADE, and that is the
+richest input for a video world. `extract-brand.py` scrolls the page once (lazy
+images load) and ranks every `<img>` (currentSrc), CSS `background-image`, `<video>`
+poster/src and og:image by rendered area. It downloads the top 16 into `imagery/` and
+saves up to 6 inline `<svg>` marks (header/nav first), with `imagery.json` as the
+index. Next/Vercel optimizer URLs (`/_next/image?url=…`) are named after the inner
+file. On the dental-clinic site this surfaced warm studio portraits, milled ceramic
+crowns and panoramic X-rays: three far stronger world sources than the site's
+navy hero, which the first style had copied.
+
 ## Key sources
 
 - Oklab: bottosson.github.io/posts/oklab/

@@ -6,6 +6,13 @@
 > `cuco_core.engine.render.webgfx.capture`). Design context and routing come
 > from SKILL.md; this file is the engine contract + techniques.
 
+**Design comes first:** the world from SKILL.md Step 2 (a material, a process, type
+living in it), not a layout. WebGFX renders with a browser, so the website trap is
+closest here. Cards, pills, gradient blobs and fade-up reveals make a style read as a
+web page. Make the material with a canvas/WebGL shader, SVG filters
+(`feTurbulence` + `feDisplacementMap` are the web's fractal noise and displacement)
+and generated plates in `assets/` (see "Source the material" in SKILL.md).
+
 Reference examples live in `webgfx-styles/` — nine first-party styles, each a
 different register. Full designer docs: `designers-docs/content/webgfx/`
 (anatomy, runtime API). This skill is the operational playbook distilled from

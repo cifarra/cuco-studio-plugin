@@ -1,258 +1,180 @@
-# Animation & Design Techniques for CucoStudio Styles
+# Motion mechanics reference (ExtendScript)
 
-Practical reference for building professional motion graphics via ExtendScript.
+How to move things well in AE once you know WHAT moves. This file has no style in
+it. The world and its process come from SKILL.md Step 2 and
+[ae-techniques.md](./ae-techniques.md). The generic text reveals and texture finishes
+that used to live here (typewriter, blur-in, scale pop, wipe, grain + vignette +
+scan lines) are mechanics, never a concept: a style built from them is a template
+pack.
 
 ---
 
-## Timing & Easing
+## Timing and easing
 
-### Professional vs Amateur
-The single biggest differentiator is **aggressive, intentional easing**. Default Easy Ease (33% influence) looks amateur. Professional motion uses 70-85% influence with asymmetric curves.
+The biggest difference between professional and amateur motion is **aggressive,
+intentional easing**. Default Easy Ease (33% influence) looks amateur. Use 70–90%
+influence with asymmetric curves: fast attack, long settle.
 
-### Timing Reference (at 30fps)
+At 30 fps:
+
 | Action | Frames | Duration |
 |---|---|---|
-| Snappy entrance | 8-10 | ~270-330ms |
-| Standard entrance | 10-15 | ~330-500ms |
-| Smooth transition | 15-22 | ~500-730ms |
-| Dramatic reveal | 30-60 | 1-2s |
+| Snap / stamp | 4–8 | 130–270 ms |
+| Standard arrival | 10–15 | 330–500 ms |
+| Material process (soak, develop, print run) | 20–45 | 0.7–1.5 s |
+| Ambient (light drift, rib drift, boil) | continuous | — |
 
-**Rule**: Exits should be 20-30% faster than entrances.
+- The director retimes `enter`/`exit` to the section tails (25% of the section
+  each). Phrase-level timing comes from the "0".."100" markers (see ae.md).
+- Exits run faster than entrances, and only over the last ~40% of the exit slider.
 
-### KeyframeEase Values for ExtendScript
 ```javascript
-// Snappy (easeOutCubic feel): high influence on incoming
-new KeyframeEase(0, 80)   // incoming: speed 0, influence 80%
-
-// Standard ease
-new KeyframeEase(0.5, 75)
-
-// Aggressive pop
-new KeyframeEase(0, 90)
+new KeyframeEase(0, 80)    // ease-out feel: incoming speed 0, influence 80%
+new KeyframeEase(0, 90)    // aggressive settle
+// setTemporalEaseAtKey dims: Position 1, Scale 3, 1D 1 (see ae.md)
 ```
 
----
+## Expressions
 
-## Key Expressions
-
-### Overshoot (apply to any keyframed property)
+### Overshoot (any keyframed property)
 ```javascript
-var freq = 3;    // oscillations/sec (2=heavy, 4=tight, 6=jelly)
-var decay = 5;   // settle speed (3=slow, 5=standard, 8=quick)
+var freq = 3;    // oscillations/sec (2 heavy, 4 tight, 6 jelly)
+var decay = 5;   // settle speed (3 slow, 5 standard, 8 quick)
 var n = 0;
-if (numKeys > 0) {
-  n = nearestKey(time).index;
-  if (key(n).time > time) n--;
-}
+if (numKeys > 0) { n = nearestKey(time).index; if (key(n).time > time) n--; }
 if (n > 0) {
   var t = time - key(n).time;
   var amp = velocityAtTime(key(n).time - 0.001);
   var w = freq * Math.PI * 2;
   value + amp * (Math.sin(t * w) / Math.exp(decay * t) / w);
-} else {
-  value;
-}
+} else { value; }
 ```
 
-### Bounce (physics-based)
+### Bounce (physics)
 ```javascript
-var e = 0.7;       // elasticity (0.5=heavy, 0.7=standard, 0.85=super bouncy)
-var g = 5000;      // gravity
-var nMax = 9;
-var n = 0;
-if (numKeys > 0) {
-  n = nearestKey(time).index;
-  if (key(n).time > time) n--;
-}
+var e = 0.7, g = 5000, nMax = 9, n = 0;
+if (numKeys > 0) { n = nearestKey(time).index; if (key(n).time > time) n--; }
 if (n > 0) {
   var t = time - key(n).time;
   var v = -velocityAtTime(key(n).time - .001) * e;
   var vl = length(v);
   var vu = (value instanceof Array) ? ((vl > 0) ? normalize(v) : [0,0,0]) : ((v < 0) ? -1 : 1);
-  var tCur = 0; var segDur = 2*vl/g; var tNext = segDur; var nb = 1;
+  var tCur = 0, segDur = 2*vl/g, tNext = segDur, nb = 1;
   while (tNext < t && nb <= nMax) { vl *= e; segDur *= e; tCur = tNext; tNext += segDur; nb++; }
-  if (nb <= nMax) { var delta = t - tCur; value + vu * delta * (vl - g * delta / 2); }
-  else { value; }
+  if (nb <= nMax) { var delta = t - tCur; value + vu * delta * (vl - g * delta / 2); } else { value; }
 } else { value; }
 ```
 
-### Wiggle
+### Cadence: hand-made time
 ```javascript
-wiggle(3, 15)                    // 3 freq, 15 amplitude
-var w = wiggle(3, 15);           // Y-only wiggle for position:
-[value[0], w[1]]
+posterizeTime(8);            // first line of an expression: the property updates at 8 fps
+time * 400;                  // e.g. a Turbulent Displace / Roughen Edges evolution that boils
 ```
+Every property in a hand-made world should share one cadence. A smooth 30 fps fade
+in a boiling world gives it away.
 
-### Autofade (in/out at layer boundaries)
+### Wiggle and drift
 ```javascript
-var transition = 20; // frames
-var tSecs = transition * thisComp.frameDuration;
-linear(time, inPoint, inPoint + tSecs, 0, 100) - linear(time, outPoint - tSecs, outPoint, 0, 100)
+var w = wiggle(3, 15); [value[0], w[1]];                       // Y-only wiggle
+value + [0, Math.sin(time * 2) * 20 * FLOW];                    // trinity-scaled drift
 ```
-
-### Oscillation / Breathing
-```javascript
-var amp = 5; var freq = 1; var base = 100;
-var s = base + amp * Math.sin(time * freq * 2 * Math.PI);
-[s, s]
-```
+`wiggle()` and `random()` are salted per layer. Geometry several layers must share
+needs the deterministic hash in ae.md.
 
 ---
 
-## Text Animators via ExtendScript
+## Text animators (match names)
 
-### Hierarchy
 ```
 textLayer > "ADBE Text Properties" > "ADBE Text Animators"
-  > "ADBE Text Animator" (add via addProperty)
-    > "ADBE Text Selectors" > "ADBE Text Selector" (Range Selector)
-    > "ADBE Text Animator Properties" > individual properties
+  > "ADBE Text Animator" (addProperty)
+    > "ADBE Text Selectors" > "ADBE Text Selector" (Range Selector; NOT auto-created: addProperty it)
+    > "ADBE Text Animator Properties" > properties below
 ```
 
-### Animator Property matchNames
 | matchName | Property |
 |---|---|
 | `ADBE Text Opacity` | Opacity |
 | `ADBE Text Position 3D` | Position |
 | `ADBE Text Scale 3D` | Scale |
 | `ADBE Text Rotation` | Z Rotation |
-| `ADBE Text Blur` | Blur |
+| `ADBE Text Blur` | Blur (`[h, v]`) |
 | `ADBE Text Fill Color` | Fill Color |
 | `ADBE Text Tracking Amount` | Tracking |
 
-### Range Selector Properties
-| matchName | Property |
-|---|---|
-| `ADBE Text Percent Start` | Start (%) |
-| `ADBE Text Percent End` | End (%) |
-| `ADBE Text Percent Offset` | Offset (%) |
+Range Selector: `ADBE Text Percent Start` / `End` / `Offset`.
 
-### Typewriter Effect
-```javascript
-var animators = textLayer.property("ADBE Text Properties").property("ADBE Text Animators");
-var anim = animators.addProperty("ADBE Text Animator");
-anim.name = "Typewriter";
-anim.property("ADBE Text Animator Properties").addProperty("ADBE Text Opacity").setValue(0);
-var sel = anim.property("ADBE Text Selectors").property(1);
-var sEnd = sel.property("ADBE Text Percent End");
-sEnd.setValueAtTime(0, 0);
-sEnd.setValueAtTime(2, 100);
-```
-
-### Blur-In Reveal
-```javascript
-var anim = animators.addProperty("ADBE Text Animator");
-anim.property("ADBE Text Animator Properties").addProperty("ADBE Text Blur").setValue(20);
-anim.property("ADBE Text Animator Properties").addProperty("ADBE Text Opacity").setValue(0);
-var sel = anim.property("ADBE Text Selectors").property(1);
-sel.property("ADBE Text Percent Start").setValueAtTime(0, 0);
-sel.property("ADBE Text Percent Start").setValueAtTime(1.5, 100);
-```
-
-### Scale Pop Per-Character
-```javascript
-var anim = animators.addProperty("ADBE Text Animator");
-anim.property("ADBE Text Animator Properties").addProperty("ADBE Text Scale 3D").setValue([0, 0, 0]);
-anim.property("ADBE Text Animator Properties").addProperty("ADBE Text Opacity").setValue(0);
-var sel = anim.property("ADBE Text Selectors").property(1);
-sel.property("ADBE Text Percent Start").setValueAtTime(0, 0);
-sel.property("ADBE Text Percent Start").setValueAtTime(1.2, 100);
-```
+The director measures the text at its "100" marker state. Any animator's end state
+must be the fully readable rest state (ae.md). Per-word timing comes from the
+director's markers (word k of n has marker `round(k/n*100)`), not from a fixed
+duration. Text is usually better served by the world's process applied to the whole
+text layer (soak, print, glass, boil in ae-techniques.md) than by per-character
+animators.
 
 ---
 
-## Shape Layers via ExtendScript
+## Shape layers (match names)
 
-### Rounded Rectangle
 ```javascript
 var sl = comp.layers.addShape();
-var contents = sl.property("ADBE Root Vectors Group");
-var group = contents.addProperty("ADBE Vector Group");
-var gc = group.property("ADBE Vectors Group");
-var rect = gc.addProperty("ADBE Vector Shape - Rect");
-rect.property("ADBE Vector Rect Size").setValue([400, 200]);
-rect.property("ADBE Vector Rect Roundness").setValue(20);
-var fill = gc.addProperty("ADBE Vector Graphic - Fill");
-fill.property("ADBE Vector Fill Color").setValue([0.23, 0.51, 0.96]);
+var g = sl.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
+var gc = g.property("ADBE Vectors Group");
+gc.addProperty("ADBE Vector Shape - Rect");      // "- Ellipse", "- Star", "- Group" (free path: set "ADBE Vector Shape" to a Shape())
+// addProperty invalidates sibling refs: re-fetch the group (contents.property(k)) after each add
 ```
 
-### Animated Line Draw-On (Trim Paths)
-```javascript
-var gc = group.property("ADBE Vectors Group");
-var pathG = gc.addProperty("ADBE Vector Shape - Group");
-var shape = new Shape();
-shape.vertices = [[0, 0], [400, 0]];
-shape.closed = false;
-pathG.property("ADBE Vector Shape").setValue(shape);
-var stroke = gc.addProperty("ADBE Vector Graphic - Stroke");
-stroke.property("ADBE Vector Stroke Color").setValue([1, 1, 1]);
-stroke.property("ADBE Vector Stroke Width").setValue(4);
-var trim = gc.addProperty("ADBE Vector Filter - Trim");
-trim.property("ADBE Vector Trim End").setValueAtTime(0, 0);
-trim.property("ADBE Vector Trim End").setValueAtTime(1.5, 100);
-```
+| Kind | matchName | Key props |
+|---|---|---|
+| Fill / Stroke | `ADBE Vector Graphic - Fill` / `- Stroke` | `ADBE Vector Fill Color`, `ADBE Vector Stroke Width`, `ADBE Vector Stroke Line Cap` |
+| Gradient fill | `ADBE Vector Graphic - G-Fill` | |
+| Trim Paths | `ADBE Vector Filter - Trim` | `ADBE Vector Trim Start` / `End` / `Offset` |
+| Repeater | `ADBE Vector Filter - Repeater` | `ADBE Vector Repeater Copies`, `… Offset`, `ADBE Vector Repeater Transform` > `… Rotation` / `… Scale` / `… Position` / `… Opacity 1` / `… Opacity 2` |
+| Zig Zag | `ADBE Vector Filter - Zigzag` | `ADBE Vector Zigzag Size`, `… Detail` (ridges), `… Points` (1 corner, 2 smooth) |
+| Wiggle Paths | `ADBE Vector Filter - Roughen` | `ADBE Vector Roughen Size`, `… Detail`, `ADBE Vector Temporal Freq`, `ADBE Vector Random Seed` |
+| Offset Paths | `ADBE Vector Filter - Offset` | `ADBE Vector Offset Amount`, `… Copies`, `… Copy Offset` (contour rings) |
+| Pucker & Bloat | `ADBE Vector Filter - PB` | `ADBE Vector PuckerBloat Amount` |
+| Twist | `ADBE Vector Filter - Twist` | `ADBE Vector Twist Angle`, `… Center` |
+| Merge Paths | `ADBE Vector Filter - Merge` | `ADBE Vector Merge Type` |
+| Wiggle Transform | `ADBE Vector Filter - Wiggler` | `ADBE Vector Xform Temporal Freq`, `ADBE Vector Wiggler Transform` |
+| Round Corners | `ADBE Vector Filter - RC` | `ADBE Vector RoundCorner Radius` |
 
-### Expanding Circle
-```javascript
-var ellipse = gc.addProperty("ADBE Vector Shape - Ellipse");
-ellipse.property("ADBE Vector Ellipse Size").setValueAtTime(0, [0, 0]);
-ellipse.property("ADBE Vector Ellipse Size").setValueAtTime(1, [600, 600]);
-```
+For illustrated vector work (characters, marks, ornaments), use the sibling skill
+`ae-shape-animation`.
 
 ---
 
-## Effects via ExtendScript
+## Effects: finding match names and params
 
-### Key matchNames
-| Effect | matchName |
-|---|---|
-| Gaussian Blur | `ADBE Gaussian Blur 2` |
-| Drop Shadow | `ADBE Drop Shadow` |
-| Glow | `ADBE Glo2` |
-| Roughen Edges | `ADBE Roughen Edges` |
-| Turbulent Displace | `ADBE Turbulent Displace` |
-| Linear Wipe | `ADBE Linear Wipe` |
-| Radial Wipe | `ADBE Radial Wipe` |
-| Gradient Ramp | `ADBE Ramp` |
-| Fill | `ADBE Fill` |
-| Noise | `ADBE Noise2` |
-| Tint | `ADBE Tint` |
-
-### Adding Gaussian Blur
+Never guess parameter indices: list them. The Fractal Noise snippet that used to sit
+here set "Evolution" on `-0008`, which is Rotation; Evolution is `-0023`.
 ```javascript
-var blur = layer.property("ADBE Effect Parade").addProperty("ADBE Gaussian Blur 2");
-blur.property("ADBE Gaussian Blur 2-0001").setValueAtTime(0, 30);  // blurry
-blur.property("ADBE Gaussian Blur 2-0001").setValueAtTime(1, 0);   // sharp
+// every installed effect (category | display name | matchName)
+var e = app.effects; for (var i = 0; i < e.length; i++) $.writeln(e[i].category + " | " + e[i].displayName + " | " + e[i].matchName);
+// params of one effect: add it to a scratch solid and walk e.property(i).matchName / .name
 ```
+Run them through `aectx q`. Parameter dumps for the effects used in the technique
+library (Fractal Noise, Turbulent Displace, Gradient Wipe, Displacement Map, Motion
+Tile, Levels, Roughen Edges, Echo, CC Glass, CC RepeTile, Card Dance, CC Particle
+World…) are written into [ae-techniques.md](./ae-techniques.md) and its lab.
 
-### Adding Linear Wipe (Reveal)
-```javascript
-var wipe = layer.property("ADBE Effect Parade").addProperty("ADBE Linear Wipe");
-wipe.property("ADBE Linear Wipe-0001").setValueAtTime(0, 100);  // hidden
-wipe.property("ADBE Linear Wipe-0001").setValueAtTime(1, 0);    // revealed
-wipe.property("ADBE Linear Wipe-0002").setValue(90);              // angle: left-to-right
-wipe.property("ADBE Linear Wipe-0003").setValue(50);              // feather
-```
+Frequently used (verified in AE 25.6):
 
-### Film Grain (Fractal Noise)
-```javascript
-var solid = comp.layers.addSolid([0,0,0], "grain", comp.width, comp.height, 1);
-var fn = solid.property("ADBE Effect Parade").addProperty("ADBE Fractal Noise");
-// Contrast: 140, Brightness: -30, Scale: 50%, Complexity: 1
-fn.property("ADBE Fractal Noise-0004").setValue(140);
-fn.property("ADBE Fractal Noise-0005").setValue(-30);
-fn.property("ADBE Fractal Noise-0111").setValue(50);   // Transform > Scale
-fn.property("ADBE Fractal Noise-0007").setValue(1);
-fn.property("ADBE Fractal Noise-0008").expression = "time * 300";  // Evolution
-solid.blendMode = BlendingMode.OVERLAY;
-solid.property("Opacity").setValue(10);
-```
+| Effect | matchName | Params |
+|---|---|---|
+| Fractal Noise | `ADBE Fractal Noise` | `-0004` Contrast, `-0005` Brightness, `-0010` Scale, `-0015` Complexity, `-0023` Evolution, `-0029` Opacity, `-0030` Blending Mode |
+| Gradient Ramp | `ADBE Ramp` | `-0001` Start, `-0002` Start Color, `-0003` End, `-0004` End Color, `-0005` Shape (2 = radial), `-0006` Scatter |
+| Gaussian Blur | `ADBE Gaussian Blur 2` | `-0001` Blurriness, `-0003` Repeat Edge Pixels |
+| Levels | `ADBE Easy Levels2` | `-0003` Input Black, `-0004` Input White, `-0005` Gamma (0..1 floats) |
+| Tint | `ADBE Tint` | `-0001` Map Black To, `-0002` Map White To, `-0003` Amount |
+| Fill | `ADBE Fill` | `-0002` Color (RGBA) |
+| Transform | `ADBE Geometry2` | `-0003` Scale |
+| Directional Blur | `ADBE Motion Blur` | `-0001` Direction, `-0002` Length |
 
 ---
 
-## Vertical Video Layout (1080×1920)
+## Vertical video (1080×1920)
 
-### Safe Zones
+### Safe zones
 | Platform | Top | Bottom | Left | Right |
 |---|---|---|---|---|
 | IG Reels | 220px | 420px | 60px | 120px |
@@ -260,61 +182,18 @@ solid.property("Opacity").setValue(10);
 | YouTube Shorts | 288px | 672px | 48px | 192px |
 | **Universal safe** | **288px** | **672px** | **64px** | **192px** |
 
-### Typography Scale
-| Role | Size |
+Keep captions and subtitles above the bottom ~400 px. The world itself (material,
+light, plates) should run full-bleed; only text needs the safe zone.
+
+### Type at video scale
+Video type is read in a second from a phone at arm's length.
+
+| Role | Size on 1080×1920 |
 |---|---|
-| Display/hero | 72-120px |
-| Headline | 48-72px |
-| Subhead | 32-48px |
-| Body | 24-32px |
-| Caption | 18-24px |
+| Monumental / landing | 260–420 px |
+| Statement | 140–240 px |
+| Supporting line | 64–110 px |
+| Furniture / labels | ≥ 24 px (20 px tracked caps reads as ~7 pt) |
 
-### Spacing (8px grid)
-- Micro (related elements): 8-16px
-- Small (between text blocks): 24-32px
-- Medium (between sections): 48-64px
-- Large (margins): 80-128px
-
----
-
-## Texture Stack Order (bottom to top)
-1. Background (gradient, solid, footage)
-2. Content layers (text, graphics, media)
-3. Vignette — Multiply, 20-35% opacity
-4. Film grain — Overlay/Soft Light, 8-15% opacity
-5. Scan lines — Multiply, 5-12% opacity (optional)
-
----
-
-## Stagger Timing
-| Delay | Feel | Use |
-|---|---|---|
-| 2-3 frames | Almost simultaneous | Particles, large groups |
-| 3-5 frames | Quick cascade | List items, cards |
-| 5-7 frames | Comfortable | Nav items, features |
-| 8-12 frames | Deliberate | Hero sections |
-
-**Golden rule**: Stagger delay = 20-40% of individual animation duration.
-
----
-
-## Animation Recipes
-
-### Standard Entrance
-1. Duration: 10-15 frames
-2. Easing: easeOutCubic
-3. Stagger: 3-5 frames between elements
-4. Optional overshoot: 5-10% past target
-5. Motion blur on
-
-### Bouncy/Playful Entrance
-1. Duration: 12-18 frames
-2. Scale from 0% to 110% (overshoot) to 100%
-3. Or use overshoot expression (freq=3, decay=5)
-4. Slight rotation during scale (-3° to 0°)
-
-### Text Reveal
-1. Typewriter: Range Selector End 0→100 over 1-2s
-2. Blur-in: Blur 20→0 + Opacity 0→100, per character
-3. Scale pop: Scale 0→100 + Opacity 0→100, per character
-4. Wipe: Linear Wipe 100→0 over 0.5-1s with feather 50px
+The director binary-searches the font size to fit the text comp, so these are design
+intents for sample text and zone sizes, not fixed values.

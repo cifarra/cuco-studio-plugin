@@ -1,6 +1,6 @@
 ---
 name: cuco-studio
-description: Render videos with the cuco CLI / CucoStudio. Use ANY time you turn content into a video here: building a storyboard (sections of text + media), creating an arrangement, applying a style, and rendering an mp4 — or driving projects, styles, transcription, story clips. ALSO use whenever the user refers to an existing video/story/script of theirs ("my new cucostudio video", "my video called X", "the latest cuco project") and wants it read, reviewed, proofread, summarized or edited: those live in the app, not on disk — fetch them with the cuco CLI, never search the filesystem. Triggers — "cuco", "CucoStudio", "my video", "review/proofread the script", "check the grammar of my video", "make/render a video", "build a storyboard", "render this arrangement", "turn these images/clips into a video", "explainer / educational video", "animate how X works/is built", "3D animation for a video", "animated diagrams / plates for a concept", "generate the media in the style", "use three.js/p5/canvas for the visuals". Read BEFORE driving the cuco CLI by hand. cuco does one thing: it turns a storyboard (text + media paths) into a rendered video. It does not source media — hand it paths you already have, or generate them (see "Generated animation media": two engine templates, three.js for 3D models and 2D print plates for concepts and diagrams, render narrated clips themed from the selected style).
+description: Render videos with the cuco CLI / CucoStudio. Use ANY time you turn content into a video here, building a storyboard (sections of text + media), creating an arrangement, applying a style, and rendering an mp4 — or driving projects, styles, transcription, story clips. ALSO use whenever the user refers to an existing video/story/script of theirs ("my new cucostudio video", "my video called X", "the latest cuco project") and wants it read, reviewed, proofread, summarized or edited — those live in the app, not on disk — fetch them with the cuco CLI, never search the filesystem. Triggers — "cuco", "CucoStudio", "my video", "review/proofread the script", "check the grammar of my video", "make/render a video", "build a storyboard", "render this arrangement", "turn these images/clips into a video", "explainer / educational video", "animate how X works/is built", "3D animation for a video", "animated diagrams / plates for a concept", "generate the media in the style", "use three.js/p5/canvas for the visuals". Read BEFORE driving the cuco CLI by hand. cuco does one thing — it turns a storyboard (text + media paths) into a rendered video. It does not source media — hand it paths you already have, or generate them (see "Generated animation media" — two engine templates, three.js for 3D models and 2D print plates for concepts and diagrams, render narrated clips themed from the selected style).
 ---
 
 # Cuco Video Engine
@@ -168,6 +168,10 @@ Edit `storyboard.json` with your content:
 }
 ```
 
+A media-only section is `"text": ""` with `"origin": "text"` and its `media`. The API
+accepts only `audio`, `video`, `text` or `empty` as `origin` and rejects `"media"`
+with a 422.
+
 ## Commands
 
 ```bash
@@ -226,8 +230,23 @@ running backend owns it.
 - **Story clip wiring:** put the file at `projects/<PID>/story_clips/<uuid>.<ext>` and set every
   section to `origin: "audio"`, `story_source: "upload"`, `clip_id: "<uuid>"`. One clip can back
   all sections; Cuco aligns each section's text inside it.
+- **One shared clip puts cuts early.** With one clip across all sections, the aligner ends each
+  section 0.1–0.45 s before the voice finishes the line, so the next image cuts in mid-word (bad
+  on name cards). When a cut must match the line, give each section its own clip: its line,
+  trimmed of TTS silence and padded (~0.12 s before, ~0.4 s after), at
+  `story_clips/<uuid>.wav`, with a different `clip_id` per section. Then every cut lands in a pause.
+  A worked driver, with per-line TTS caching, QA and export, is in
+  `~/styles/hdc/campaign/make_reels.py` and `review_reels.py`.
+- **The phrase splitter breaks at every period.** "Dr. Eduardo Cabrera" became the subtitle card
+  "Dr." and then the rest. Write abbreviations out ("Doctor") or drop the period. Longer lines split by
+  length, not at commas, so short sentences give cleaner cards. Phrases under ~0.6 s never settle
+  on screen; slow a quick hook with ElevenLabs break tags in `"say"`
+  (`No trays. <break time="0.45s" /> No goo.`).
 - **Section timing** after processing is in `arrangements/<AID>/screenplay.json`
-  (`sections[i].section_in / duration`). `process --no-render` gets it without rendering.
+  (`sections[i].section_in / duration`). `process --no-render` gets it without rendering,
+  BUT it leaves that arrangement `COMPLETED` and read-only (a later `--render` returns 409
+  "already rendered"). Plan on a throwaway arrangement, then create a fresh one to render.
+  The caster re-casts per arrangement (a media-only section went to a different shot on re-plan).
 - **`cuco files copy-local` refuses sources outside allowed dirs** (e.g. `/private/tmp`
   scratchpads) with 403 ACCESS_DENIED. Copy into `attached_media/<sha256>.<ext>` by hand.
 - **Styles frame media differently.** Some show it in a card or crop, not full frame. Read the

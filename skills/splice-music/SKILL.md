@@ -1,6 +1,6 @@
 ---
 name: splice-music
-description: Use when you have a folder of clip JSON sidecars (from the shot-edits / After Effects export) plus a Splice sample pack, and want to create per-clip music beds — decoding the pack's filenames for BPM/key/instrument, grouping construction kits, aligning the drum drop to a real edit cut, and rendering looped jazz/score arrangements with ffmpeg. Triggers: "score these clips", "make music from this splice pack", "create soundtracks for the edits", "add music beds to the micro-clips", "another take on the music", "this one's too fast/aggressive/sparse".
+description: Use when you have a folder of clip JSON sidecars (from the shot-edits / After Effects export) plus a Splice sample pack, and want to create per-clip music beds — decoding the pack's filenames for BPM/key/instrument, grouping construction kits, aligning the drum drop to a real edit cut, and rendering looped jazz/score arrangements with ffmpeg. Triggers — "score these clips", "make music from this splice pack", "create soundtracks for the edits", "add music beds to the micro-clips", "another take on the music", "this one's too fast/aggressive/sparse".
 ---
 
 # Splice-Pack → Per-Clip Music Beds

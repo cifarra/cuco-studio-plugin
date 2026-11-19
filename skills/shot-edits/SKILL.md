@@ -1,6 +1,6 @@
 ---
 name: shot-edits
-description: Use when you have a folder of filmed shots/clips plus per-shot text descriptions (flat timeline + enriched VLM scene/events JSON) and want to assemble short micro social edits from them with CucoStudio — surveying the archive, pairing shots into 2–5 shot sequences by narrative/eyeline/juxtaposition logic, optionally shaving clips with ffmpeg, and rendering in a chosen style. Triggers: "edit micro clips from these shots", "cut socials from the footage", "pair these shots", "make edits from the enriched descriptions".
+description: Use when you have a folder of filmed shots/clips plus per-shot text descriptions (flat timeline + enriched VLM scene/events JSON) and want to assemble short micro social edits from them with CucoStudio — surveying the archive, pairing shots into 2–5 shot sequences by narrative/eyeline/juxtaposition logic, optionally shaving clips with ffmpeg, and rendering in a chosen style. Triggers — "edit micro clips from these shots", "cut socials from the footage", "pair these shots", "make edits from the enriched descriptions".
 ---
 
 # Shot-Archive → Micro Edits

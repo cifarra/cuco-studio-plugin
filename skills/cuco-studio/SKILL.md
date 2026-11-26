@@ -227,6 +227,10 @@ running backend owns it.
 - **Muted text sections ignore media length** (~2 s for a short line). For timed shots, drive timing with a
   story clip. `narrate_story_clip.py` takes per-beat `"voice"` (narrator + characters), `"gap"` (hold
   a pause for a comic beat) and `"say"` (speak something other than the caption).
+- **"AE extension disconnected while awaiting command CREATE_AEP"** marks the arrangement
+  FAILED, but AE keeps building, far slower: 37 min for a 31 s video that rendered in
+  20 s before. The video still lands in `arrangements/<AID>/video.mp4`. Wait for
+  `finalize done` at the end of `logs/ae-build.log` before re-rendering.
 - **Story clip wiring:** put the file at `projects/<PID>/story_clips/<uuid>.<ext>` and set every
   section to `origin: "audio"`, `story_source: "upload"`, `clip_id: "<uuid>"`. One clip can back
   all sections; Cuco aligns each section's text inside it.

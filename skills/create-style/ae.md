@@ -212,6 +212,19 @@ osascript -e 'tell application "Adobe After Effects 2025" to DoScript "$.evalFil
   balanced lines (join words ≤ 2 chars to the next word) survives the
   director's font fitting — `sourceRectAtTime` measures the reflowed block —
   and gives monumental size on vertical canvases.
+- **Empty sections** (no text, no media) cast only to an "empty-compatible" shot.
+  That's a shot with an empty `{shot}-text` sample and no `{shot}-frame` (manifest
+  `chars` and `frame` both null; `aectx validate` lists it as "no-text-no-frame"). Use it
+  for a full brand shot. Text sections score it 0, so only casting pressure 100 sends text
+  there: show any text it gets (FILA20's 07).
+- **A logo on every frame, or an adjustment layer over everything (grain), can't live in
+  mainComp**: template layers there sit under the shots. Put it at the top of every shot.
+  A logo at the same spot with no entrance reads as one logo across cuts. On bright stills a tight drop shadow (opacity ~70%, softness ~16) keeps a
+  white logo legible.
+- **Trace a raster logo into shape layers** with `potracer` (pure-Python potrace), building
+  `Shape` vertices and tangents with an even-odd fill. Redraw circles as exact ellipse
+  strokes so they can trim-draw (`examples/fila20/logo/trace_logo.py`).
+- 24 fps styles work: the director takes mainComp's frame rate.
 - The caster may put a media-only section on a text+media shot. Test
   `thisComp.layer("{shot}-text").source.layer("textBlock").sourceRectAtTime(
   thisComp.duration/2).width > 1` and re-centre the plate (parent it to a

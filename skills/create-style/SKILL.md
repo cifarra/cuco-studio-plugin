@@ -488,6 +488,7 @@ Don't copy their look. The builds after the table are the current references.
 | [hcd-smile](./examples/hcd-smile/) | brand fidelity; the typeset layer (performance); mark-shaped windows; speed-bent sheets | serif lines rising out of baseline windows; text block bottom-left under a photo window; lockup top-left; giant tone-on-tone mark; landing phrase in the accent |
 | [salf-29n](./examples/salf-29n/) | Extract light/ink reveal; bot-wall extraction; manifest-driven casting test | HCD Smile again (same engine, layouts, skeleton), plus baked content: a section counter, a date, the candidate's portrait |
 | [salf-cinta](./examples/salf-cinta/) | register from posters and reels; one device (tape) for type and media; a line layer per line, sized strips; the reflow read once (performance) | heavy italic caps on torn strips pulled in sideways and ripped off; tilted taped-up prints; hard cuts with everything in place; 6 shots |
+| [fila20](./examples/fila20/) | the brand's name as the world (row 20 → the cinema screen); traced vector logo; persistent logo; empty sections → brand shot; credits-roll column; 24 fps | a lit white screen re-fitted to each phrase; end-credits roll; the logo ring as leader sweep and changeover cue; subtitles under or burned into stills |
 
 The first world-first build is [letterpile](./examples/letterpile/): one style frame →
 BRAND (brief + world) → 7 shots, smoke-rendered through CucoStudio (style 78). Learn

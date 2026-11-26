@@ -1,0 +1,92 @@
+{
+ "sections": [
+  {
+   "text": "It all starts dark.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "Personal stories with a long memory.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "We met in the twentieth row of a cinema in Havana and never really left it. Every story we tell begins there, in the dark.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "The light finds them before we do.",
+   "media": [
+    {
+     "filePath": "projects/188/attached_media/s169.jpg",
+     "fileHash": "a31244652fd42cad0dcae2b5bf813197258893109c65d68bd24cd23b4efa8059",
+     "originalName": "s169.jpg",
+     "fileSize": 299083,
+     "mimeType": "image/jpeg"
+    }
+   ],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "Shot on location, one take at a time.",
+   "media": [
+    {
+     "filePath": "projects/188/attached_media/s45.jpg",
+     "fileHash": "ac4ac9b4a7ad1ec28ca7172172d5ca78d029e0fc103cefd3f3832ca666fbb25c",
+     "originalName": "s45.jpg",
+     "fileSize": 97588,
+     "mimeType": "image/jpeg"
+    }
+   ],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "",
+   "media": [
+    {
+     "filePath": "projects/188/attached_media/s916.jpg",
+     "fileHash": "16ad34480e311d4dfac503b08805a01808f108759ee5ba092c64b4bb7acf99ce",
+     "originalName": "s916.jpg",
+     "fileSize": 160622,
+     "mimeType": "image/jpeg"
+    }
+   ],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "",
+   "media": [],
+   "origin": "empty",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  },
+  {
+   "text": "Row twenty, always.",
+   "media": [],
+   "origin": "text",
+   "story_source": "text",
+   "language": "en",
+   "mute": true
+  }
+ ]
+}
